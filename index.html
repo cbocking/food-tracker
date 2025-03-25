@@ -238,7 +238,7 @@
                 <div class="quick-add-buttons">
                     <button onclick="quickAdd('Chicken Breast (100g)', 165, 31, 0)">Chicken Breast (100g)</button>
                     <button onclick="quickAdd('Ground Beef (100g, 80/20)', 250, 17, 0)">Ground Beef (100g, 80/20)</button>
-                    <button onclick="quickAdd('Sausage (1)', 150, 7, 0)">Sausage (1)</button>
+                    <button onclick="quickAdd('Sausage (1)', 150, 17, 0)">Sausage (1)</button>
                     <button onclick="quickAdd('Hash Browns (1 cup)', 300, 3, 3)">Hash Browns (1 cup)</button>
                     <button onclick="quickAdd('Pasta (1 cup uncooked)', 370, 13, 3)">Pasta (1 cup uncooked)</button>
                     <button onclick="quickAdd('Brown Rice (1/2 cup cooked)', 110, 2.5, 2)">Brown Rice (1/2 cup cooked)</button>
@@ -253,12 +253,16 @@
             <div class="quick-add-section">
                 <h3 onclick="toggleSection(this)">Snacks (including Desserts)</h3>
                 <div class="quick-add-buttons">
+                    <button onclick="quickAdd('RX Protein Bar', 200, 12, 5)">RX Protein Bar</button>
+                    <button onclick="quickAdd('Protein Powder (20g)', 80, 20, 0)">Protein Powder (20g)</button>
+                    <button onclick="quickAdd('Homemade Chocolate Chip Cookie (1)', 150, 2, 1)">Homemade Chocolate Chip Cookie (1)</button>
                     <button onclick="quickAdd('Sourdough Pizza (1 slice)', 200, 8, 1)">Sourdough Pizza (1 slice)</button>
                     <button onclick="quickAdd('Greek Yogurt (1 cup)', 120, 20, 0)">Greek Yogurt (1 cup)</button>
                     <button onclick="quickAdd('Oatmeal (1/2 cup dry)', 150, 5, 4)">Oatmeal (1/2 cup dry)</button>
                     <button onclick="quickAdd('Almonds (1/4 cup)', 160, 6, 3.5)">Almonds (1/4 cup)</button>
                     <button onclick="quickAdd('Dark Chocolate Almonds (1/4 cup)', 220, 5, 3)">Dark Chocolate Almonds (1/4 cup)</button>
                     <button onclick="quickAdd('Cottage Cheese (1/2 cup)', 110, 14, 0)">Cottage Cheese (1/2 cup)</button>
+                    <button onclick="quickAdd('Milk (1 cup)', 150, 8, 0)">Milk (1 cup)</button>
                     <button onclick="quickAdd('Milk (1 cup, 2%)', 120, 8, 0)">Milk (1 cup, 2%)</button>
                 </div>
             </div>
@@ -289,8 +293,8 @@
         <div class="history">
             <h2>History</h2>
             <div class="history-buttons">
-                <button onclick="exportHistory()">Export History</button>
-                <button onclick="shareHistory()">Share History</button>
+                <button onclick="exportHistory()">Export History (JSON)</button>
+                <button onclick="shareHistory()">Share Summary</button>
             </div>
             <div id="historyList"></div>
         </div>
@@ -448,17 +452,33 @@
         }
 
         function shareHistory() {
-            const dataStr = JSON.stringify(dailyEntries, null, 2);
+            let summary = 'My Tracker History\n\n';
+            Object.keys(dailyEntries).sort().forEach(date => {
+                const entries = dailyEntries[date];
+                let totalCalories = 0;
+                let totalProtein = 0;
+                let totalFiber = 0;
+                entries.forEach(entry => {
+                    totalCalories += Number(entry.calories);
+                    totalProtein += Number(entry.protein);
+                    totalFiber += Number(entry.fiber || 0);
+                });
+                summary += `${date}:\n`;
+                summary += `  Calories: ${totalCalories}\n`;
+                summary += `  Protein: ${totalProtein}g\n`;
+                summary += `  Fiber: ${totalFiber}g\n\n`;
+            });
+
             if (navigator.share) {
                 navigator.share({
                     title: 'My Tracker History',
-                    text: dataStr,
+                    text: summary,
                 }).catch(err => console.log('Share failed:', err));
             } else {
-                navigator.clipboard.writeText(dataStr).then(() => {
-                    alert('History copied to clipboard!');
+                navigator.clipboard.writeText(summary).then(() => {
+                    alert('Summary copied to clipboard!');
                 }).catch(err => {
-                    alert('Failed to copy history: ' + err);
+                    alert('Failed to copy summary: ' + err);
                 });
             }
         }
