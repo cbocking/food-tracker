@@ -47,6 +47,7 @@
         }
         .manual-input {
             display: flex;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
             gap: 10px;
             margin-bottom: 20px;
         }
@@ -55,6 +56,7 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             flex: 1;
+            min-width: 0; /* Prevent inputs from growing too wide */
         }
         .manual-input button {
             padding: 8px 15px;
@@ -66,6 +68,20 @@
         }
         .manual-input button:hover {
             background-color: #2980b9;
+        }
+        /* Mobile adjustments */
+        @media (max-width: 600px) {
+            .manual-input {
+                gap: 5px; /* Smaller gap on mobile */
+            }
+            .manual-input input {
+                padding: 6px; /* Smaller padding */
+                flex: 1 1 45%; /* Two inputs per row */
+            }
+            .manual-input button {
+                padding: 6px 10px; /* Smaller button */
+                flex: 1 1 100%; /* Button takes full width */
+            }
         }
         .quick-add {
             margin-bottom: 20px;
@@ -238,7 +254,7 @@
                 <div class="quick-add-buttons">
                     <button onclick="quickAdd('Chicken Breast (100g)', 165, 31, 0)">Chicken Breast (100g)</button>
                     <button onclick="quickAdd('Ground Beef (100g, 80/20)', 250, 17, 0)">Ground Beef (100g, 80/20)</button>
-                    <button onclick="quickAdd('Sausage (1)', 220, 17, 0)">Sausage (1)</button>
+                    <button onclick="quickAdd('Sausage (1)', 150, 17, 0)">Sausage (1)</button>
                     <button onclick="quickAdd('Hash Browns (1 cup)', 300, 3, 3)">Hash Browns (1 cup)</button>
                     <button onclick="quickAdd('Pasta (1 cup uncooked)', 370, 13, 3)">Pasta (1 cup uncooked)</button>
                     <button onclick="quickAdd('Brown Rice (1/2 cup cooked)', 110, 2.5, 2)">Brown Rice (1/2 cup cooked)</button>
