@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calorie, Protein & Fiber Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h3::after {
+            content: '▼';
+            font-size: 0.8em;
+            transition: transform 0.3s;
+        }
+        h3.collapsed::after {
+            transform: rotate(180deg);
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .manual-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .manual-input input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            flex: 1;
+        }
+        .manual-input button {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .manual-input button:hover {
+            background-color: #2980b9;
+        }
+        .quick-add {
+            margin-bottom: 20px;
+        }
+        .quick-add-section {
+            margin-bottom: 20px;
+        }
+        .quick-add-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .quick-add-buttons.expanded {
+            max-height: 500px;
+        }
+        .quick-add button {
+            padding: 8px 12px;
+            background-color: #ecf0f1;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .quick-add button:hover {
+            background-color: #dfe6e9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: #34495e;
+            color: white;
+        }
+        .total td {
+            font-weight: bold;
+            background-color: #f1f1f1;
+        }
+        .remove-btn {
+            padding: 5px 10px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .remove-btn:hover {
+            background-color: #c0392b;
+        }
+        .history {
+            margin-top: 20px;
+        }
+        .history div {
+            padding: 10px;
+            background-color: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .history-buttons {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .history-buttons button {
+            padding: 8px 15px;
+            margin: 0 5px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .history-buttons button:hover {
+            background-color: #2980b9;
+        }
+        .clear-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .clear-button:hover {
+            background-color: #c0392b;
+        }
+        .goals {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .goals select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .goals p {
+            margin: 5px 0;
+        }
+        .goal-met {
+            color: #27ae60;
+        }
+        .goal-not-met {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calorie, Protein & Fiber Tracker</h1>
+        <div class="goals">
+            <label for="goalSelect">Select Your Goal: </label>
+            <select id="goalSelect" onchange="updateTable()">
+                <option value="21">Extreme Weight Gain (21x)</option>
+                <option value="20">Extreme Weight Gain (20x)</option>
+                <option value="19">Extreme Weight Gain (19x)</option>
+                <option value="18">Moderate Weight Gain (18x)</option>
+                <option value="17">Moderate Weight Gain (17x)</option>
+                <option value="16" selected>Moderate Weight Gain (16x)</option>
+                <option value="15">Maintenance (15x)</option>
+                <option value="14">Maintenance (14x)</option>
+                <option value="13">Maintenance (13x)</option>
+                <option value="12">Moderate Weight Loss (12x)</option>
+                <option value="11">Moderate Weight Loss (11x)</option>
+                <option value="10">Moderate Weight Loss (10x)</option>
+                <option value="9">Extreme Weight Loss (9x)</option>
+                <option value="8">Extreme Weight Loss (8x)</option>
+                <option value="7">Extreme Weight Loss (7x)</option>
+            </select>
+            <p>Protein Goal: <span id="proteinGoalStatus">0 / 160g</span></p>
+            <p>Calorie Goal: <span id="calorieGoalStatus">0 / 2560</span></p>
+            <p>Fiber Goal: <span id="fiberGoalStatus">0 / 36g</span></p>
+        </div>
+        <div class="manual-input">
+            <input type="text" id="food" placeholder="Food name">
+            <input type="number" id="calories" placeholder="Calories" min="0">
+            <input type="number" id="protein" placeholder="Protein (g)" min="0">
+            <input type="number" id="fiber" placeholder="Fiber (g)" min="0">
+            <button onclick="addEntry()">Add</button>
+        </div>
+        <div class="quick-add">
+            <h2>Quick Add Foods</h2>
+            <div class="quick-add-section">
+                <h3 onclick="toggleSection(this)">Meal 1</h3>
+                <div class="quick-add-buttons expanded">
+                    <button onclick="quickAdd('Egg (1)', 70, 6, 0)">Egg (1)</button>
+                    <button onclick="quickAdd('Sourdough Bread (1 slice)', 80, 3, 1)">Sourdough Bread (1 slice)</button>
+                    <button onclick="quickAdd('Rye Bread (1 slice)', 90, 3, 2)">Rye Bread (1 slice)</button>
+                    <button onclick="quickAdd('Granola (1/2 cup)', 240, 4, 3)">Granola (1/2 cup)</button>
+                    <button onclick="quickAdd('Banana (0.5)', 45, 0.5, 1.5)">Banana (0.5)</button>
+                    <button onclick="quickAdd('Apple (0.5)', 47, 0.2, 2)">Apple (0.5)</button>
+                    <button onclick="quickAdd('Blueberries (1/4 cup)', 20, 0.3, 1)">Blueberries (1/4 cup)</button>
+                    <button onclick="quickAdd('Wrap (1)', 90, 3, 20)">Wrap (1)</button>
+                    <button onclick="quickAdd('Kefir (1 tbsp)', 10, 0.5, 0)">Kefir (1 tbsp)</button>
+                    <button onclick="quickAdd('Peanut Butter (1 tbsp)', 90, 4, 1)">Peanut Butter (1 tbsp)</button>
+                </div>
+            </div>
+            <div class="quick-add-section">
+                <h3 onclick="toggleSection(this)">Dinner</h3>
+                <div class="quick-add-buttons">
+                    <button onclick="quickAdd('Chicken Breast (100g)', 165, 31, 0)">Chicken Breast (100g)</button>
+                    <button onclick="quickAdd('Ground Beef (100g, 80/20)', 250, 17, 0)">Ground Beef (100g, 80/20)</button>
+                    <button onclick="quickAdd('Sausage (1)', 150, 7, 0)">Sausage (1)</button>
+                    <button onclick="quickAdd('Hash Browns (1 cup)', 300, 3, 3)">Hash Browns (1 cup)</button>
+                    <button onclick="quickAdd('Pasta (1 cup uncooked)', 370, 13, 3)">Pasta (1 cup uncooked)</button>
+                    <button onclick="quickAdd('Brown Rice (1/2 cup cooked)', 110, 2.5, 2)">Brown Rice (1/2 cup cooked)</button>
+                    <button onclick="quickAdd('White Rice (1/2 cup cooked)', 100, 2, 0.5)">White Rice (1/2 cup cooked)</button>
+                    <button onclick="quickAdd('Sweet Potato (100g)', 86, 1.6, 3)">Sweet Potato (100g)</button>
+                    <button onclick="quickAdd('Broccoli (1 cup)', 35, 3, 3)">Broccoli (1 cup)</button>
+                    <button onclick="quickAdd('Spinach (1 cup raw)', 7, 1, 1)">Spinach (1 cup raw)</button>
+                    <button onclick="quickAdd('Sweet Peppers (1/4 cup)', 10, 0.3, 0.8)">Sweet Peppers (1/4 cup)</button>
+                    <button onclick="quickAdd('Avocado (1/2)', 120, 1, 7)">Avocado (1/2)</button>
+                </div>
+            </div>
+            <div class="quick-add-section">
+                <h3 onclick="toggleSection(this)">Snacks (including Desserts)</h3>
+                <div class="quick-add-buttons">
+                    <button onclick="quickAdd('Sourdough Pizza (1 slice)', 200, 8, 1)">Sourdough Pizza (1 slice)</button>
+                    <button onclick="quickAdd('Greek Yogurt (1 cup)', 120, 20, 0)">Greek Yogurt (1 cup)</button>
+                    <button onclick="quickAdd('Oatmeal (1/2 cup dry)', 150, 5, 4)">Oatmeal (1/2 cup dry)</button>
+                    <button onclick="quickAdd('Almonds (1/4 cup)', 160, 6, 3.5)">Almonds (1/4 cup)</button>
+                    <button onclick="quickAdd('Dark Chocolate Almonds (1/4 cup)', 220, 5, 3)">Dark Chocolate Almonds (1/4 cup)</button>
+                    <button onclick="quickAdd('Cottage Cheese (1/2 cup)', 110, 14, 0)">Cottage Cheese (1/2 cup)</button>
+                    <button onclick="quickAdd('Milk (1 cup, 2%)', 120, 8, 0)">Milk (1 cup, 2%)</button>
+                </div>
+            </div>
+        </div>
+        <h2>Today’s Tracker</h2>
+        <table id="trackerTable">
+            <thead>
+                <tr>
+                    <th>Food</th>
+                    <th>Calories</th>
+                    <th>Protein (g)</th>
+                    <th>Fiber (g)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="entryList"></tbody>
+            <tfoot>
+                <tr class="total">
+                    <td>Total</td>
+                    <td id="totalCalories">0</td>
+                    <td id="totalProtein">0</td>
+                    <td id="totalFiber">0</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+        <button class="clear-button" onclick="clearToday()">Clear Today’s Data</button>
+        <div class="history">
+            <h2>History</h2>
+            <div class="history-buttons">
+                <button onclick="exportHistory()">Export History</button>
+                <button onclick="shareHistory()">Share History</button>
+            </div>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <script>
+        let dailyEntries = JSON.parse(localStorage.getItem('dailyTrackerEntries')) || {};
+        let lastResetDate = localStorage.getItem('lastResetDate') || getCurrentDate();
+        const BODY_WEIGHT = 160; // Your weight in lbs
+        const PROTEIN_GOAL = BODY_WEIGHT; // 1g protein per lb
+        const FIBER_PER_1000_CAL = 14; // 14g fiber per 1000 cal
+
+        function getCurrentDate() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function checkAndResetDay() {
+            const currentDate = getCurrentDate();
+            if (currentDate !== lastResetDate) {
+                lastResetDate = currentDate;
+                localStorage.setItem('lastResetDate', lastResetDate);
+                if (!dailyEntries[currentDate]) {
+                    dailyEntries[currentDate] = [];
+                }
+            }
+        }
+
+        function updateTable() {
+            checkAndResetDay();
+            const currentDate = getCurrentDate();
+            const entryList = document.getElementById('entryList');
+            entryList.innerHTML = '';
+            let totalCalories = 0;
+            let totalProtein = 0;
+            let totalFiber = 0;
+
+            const todayEntries = dailyEntries[currentDate] || [];
+            todayEntries.forEach((entry, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.food}</td>
+                    <td>${entry.calories}</td>
+                    <td>${entry.protein}</td>
+                    <td>${entry.fiber}</td>
+                    <td><button class="remove-btn" onclick="removeEntry(${index})">Remove</button></td>
+                `;
+                entryList.appendChild(row);
+                totalCalories += Number(entry.calories);
+                totalProtein += Number(entry.protein);
+                totalFiber += Number(entry.fiber);
+            });
+
+            document.getElementById('totalCalories').textContent = totalCalories;
+            document.getElementById('totalProtein').textContent = totalProtein;
+            document.getElementById('totalFiber').textContent = totalFiber;
+
+            const calorieMultiplier = Number(document.getElementById('goalSelect').value);
+            const calorieGoal = BODY_WEIGHT * calorieMultiplier;
+            const fiberGoal = Math.round((calorieGoal / 1000) * FIBER_PER_1000_CAL);
+            document.getElementById('calorieGoalStatus').textContent = `${totalCalories} / ${calorieGoal}`;
+            document.getElementById('calorieGoalStatus').className = totalCalories >= calorieGoal ? 'goal-met' : 'goal-not-met';
+            document.getElementById('proteinGoalStatus').textContent = `${totalProtein} / ${PROTEIN_GOAL}g`;
+            document.getElementById('proteinGoalStatus').className = totalProtein >= PROTEIN_GOAL ? 'goal-met' : 'goal-not-met';
+            document.getElementById('fiberGoalStatus').textContent = `${totalFiber} / ${fiberGoal}g`;
+            document.getElementById('fiberGoalStatus').className = totalFiber >= fiberGoal ? 'goal-met' : 'goal-not-met';
+
+            updateHistory();
+        }
+
+        function updateHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            Object.keys(dailyEntries).sort().reverse().forEach(date => {
+                if (date !== getCurrentDate()) {
+                    const entries = dailyEntries[date];
+                    let totalCalories = 0;
+                    let totalProtein = 0;
+                    let totalFiber = 0;
+                    entries.forEach(entry => {
+                        totalCalories += Number(entry.calories);
+                        totalProtein += Number(entry.protein);
+                        totalFiber += Number(entry.fiber || 0);
+                    });
+                    const div = document.createElement('div');
+                    div.innerHTML = `<h3>${date}</h3><p>Calories: ${totalCalories}, Protein: ${totalProtein}g, Fiber: ${totalFiber}g</p>`;
+                    historyList.appendChild(div);
+                }
+            });
+        }
+
+        function addEntry() {
+            checkAndResetDay();
+            const currentDate = getCurrentDate();
+            const food = document.getElementById('food').value;
+            const calories = document.getElementById('calories').value;
+            const protein = document.getElementById('protein').value;
+            const fiber = document.getElementById('fiber').value;
+
+            if (food && calories && protein && fiber !== '') {
+                if (!dailyEntries[currentDate]) dailyEntries[currentDate] = [];
+                dailyEntries[currentDate].push({ food, calories, protein, fiber });
+                localStorage.setItem('dailyTrackerEntries', JSON.stringify(dailyEntries));
+                updateTable();
+                document.getElementById('food').value = '';
+                document.getElementById('calories').value = '';
+                document.getElementById('protein').value = '';
+                document.getElementById('fiber').value = '';
+            } else {
+                alert('Please fill in all fields!');
+            }
+        }
+
+        function quickAdd(food, calories, protein, fiber) {
+            checkAndResetDay();
+            const currentDate = getCurrentDate();
+            if (!dailyEntries[currentDate]) dailyEntries[currentDate] = [];
+            dailyEntries[currentDate].push({ food, calories, protein, fiber });
+            localStorage.setItem('dailyTrackerEntries', JSON.stringify(dailyEntries));
+            updateTable();
+        }
+
+        function removeEntry(index) {
+            const currentDate = getCurrentDate();
+            if (dailyEntries[currentDate] && index >= 0 && index < dailyEntries[currentDate].length) {
+                dailyEntries[currentDate].splice(index, 1);
+                localStorage.setItem('dailyTrackerEntries', JSON.stringify(dailyEntries));
+                updateTable();
+            }
+        }
+
+        function clearToday() {
+            const currentDate = getCurrentDate();
+            dailyEntries[currentDate] = [];
+            localStorage.setItem('dailyTrackerEntries', JSON.stringify(dailyEntries));
+            updateTable();
+        }
+
+        function toggleSection(header) {
+            const buttons = header.nextElementSibling;
+            header.classList.toggle('collapsed');
+            buttons.classList.toggle('expanded');
+        }
+
+        function exportHistory() {
+            const dataStr = JSON.stringify(dailyEntries, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `tracker_history_${getCurrentDate()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function shareHistory() {
+            const dataStr = JSON.stringify(dailyEntries, null, 2);
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My Tracker History',
+                    text: dataStr,
+                }).catch(err => console.log('Share failed:', err));
+            } else {
+                navigator.clipboard.writeText(dataStr).then(() => {
+                    alert('History copied to clipboard!');
+                }).catch(err => {
+                    alert('Failed to copy history: ' + err);
+                });
+            }
+        }
+
+        setInterval(() => {
+            const now = new Date();
+            if (now.getHours() === 0 && now.getMinutes() === 0) {
+                checkAndResetDay();
+                updateTable();
+            }
+        }, 60000);
+
+        updateTable();
+    </script>
+</body>
+</html>
